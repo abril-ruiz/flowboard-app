@@ -1,0 +1,95 @@
+services:
+  # Base de Datos PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: flowboard-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - flowboard-net
+
+  # Backend (Spring Boot)
+  backend:
+    build:
+      context: ./backend/flowboard
+      dockerfile: Dockerfile
+    container_name: flowboard-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # Base de Datos
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION_MS=${JWT_EXPIRATION_MS:-86400000}
+      # Spring
+      - SPRING_PROFILES_ACTIVE=prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - flowboard-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/actuator/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+  # Frontend (React + Nginx)
+  frontend:
+    build:
+      context: ./frontend/flowboard-ui
+      dockerfile: Dockerfile
+    container_name: flowboard-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      # Variables de entorno para Vite
+      - VITE_API_URL=http://localhost/api
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - flowboard-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+# Redes y Volúmenes
+networks:
+  flowboard-net:
+    driver: bridge
+
+volumes:
+  pgdata:

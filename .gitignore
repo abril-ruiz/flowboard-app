@@ -1,0 +1,40 @@
+# IDE / Editores
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# Sistema Operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Entornos
+.env
+.env.*
+!.env.example
+
+# Logs generales
+*.log
+logs/
+
+# Frontend
+frontend/flowboard-ui/node_modules/
+frontend/flowboard-ui/dist/
+frontend/flowboard-ui/.vite/
+
+# Backend
+backend/flowboard/target/
+backend/flowboard/.mvn/
+backend/flowboard/.idea/
+backend/flowboard/.settings/
+backend/flowboard/resources/application-local.properties
+
+# Docker build artifacts
+*.tar
+.docker/
+
+# IDE Docker configs
+docker-compose.override.yml

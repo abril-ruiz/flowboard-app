@@ -1,0 +1,21 @@
+#  Dependencias locales 
+node_modules/
+npm-debug.log
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+#  Build outputs 
+dist/
+.out/
+.cache/
+
+#  Git y IDE 
+.git/
+.idea/
+.vscode/
+*.iml
+
+#  OS 
+.DS_Store
+Thumbs.db
