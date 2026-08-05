@@ -123,12 +123,13 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("token");
     localStorage.removeItem("username");
     localStorage.removeItem("email");
+    localStorage.removeItem("role");
     setUser(null);
   };
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, updateUser }}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };
